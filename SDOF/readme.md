@@ -14,7 +14,7 @@ Created on Tue Oct 17 14:09:25 2023
 Program history
 17.10.2023    V. 1.0    Start
 23.10.2023    V. 1.2    Frequenzgang
-13.11.2023    V. 1.3    Sprungantwort
+13.11.2023    V. 1.3    Gewichtsfunktion
 
 @author: Prof. Jörg Grabow (grabow@amesys.de)
 """
@@ -298,14 +298,14 @@ plt.grid(color='gray', linestyle='--', linewidth=0.5)
 axs[0].grid(True, color='gray', linestyle='--', linewidth=0.5)  # Gitternetz einblenden
 axs[0].plot(omega_e, frf_r)
 axs[0].set_xlabel('Omega in 1/s')
-axs[0].set_ylabel('Re{H} in s²/kg²')
+axs[0].set_ylabel('Re{H} in m/N')
 axs[0].set_title('Realteil von H')
 
 # Zweites Gitter mit Imaginärteil
 axs[1].grid(True, color='gray', linestyle='--', linewidth=0.5)  # Gitternetz einblenden
 axs[1].plot(omega_e, frf_i, color='orange')  # mit angepasster Farbe
 axs[1].set_xlabel('Omega in 1/s')
-axs[1].set_ylabel('Im{H} s²/kg²')
+axs[1].set_ylabel('Im{H} m/N')
 axs[1].set_title('Imaginärteil von H')
 
 # Zeige die Plots an
@@ -331,7 +331,7 @@ plt.grid(color='gray', linestyle='--', linewidth=0.5)
 axs[0].grid(True, color='gray', linestyle='--', linewidth=0.5)  # Gitternetz einblenden
 axs[0].plot(omega_e, frf_b)
 axs[0].set_xlabel('Omega in 1/s')
-axs[0].set_ylabel('Betrag{H} in s²/kg²')
+axs[0].set_ylabel('Betrag{H} in m/N')
 axs[0].set_title('Betrag von H')
 
 # Zweites Gitter mit Imaginärteil
@@ -351,20 +351,20 @@ plt.show()
     
 
 
-### Berechnung der Sprungantwort h(t)
+### Berechnung der Gewichtsfunktion h(t)
 $ h\left ( t \right )=2\cdot \left | R \right |\cdot e^{- \delta t}\cdot sin\left ( \omega t \right ) $
 
 
 ```python
-# Berechnung der Sprungantwort
+# Berechnung der Gewichtsfunktion
 h = 2 * np.abs(res) * np.exp(- delta * t) * np.sin(w * t)
 
-# Darstellung der Sprungantwort
+# Darstellung der Gewichtsfunktion
 plt.figure(figsize=(10, 4))
 plt.plot(t, h, marker=' ', linestyle='-')
 plt.xlabel('Zeit (s)')
 plt.ylabel('Amplitude (m/N*s)')
-plt.title('Sprungantwort')
+plt.title('Gewichtsfunktion h(t)')
 plt.grid(True)
 plt.show()
 ```
