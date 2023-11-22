@@ -150,6 +150,8 @@ Q = sym.Matrix([[q1],[q2],[q3]])
 f1, f2, f3 = dynamicsymbols('f1 f2 f3')
 F = sym.Matrix([[f1],[f2],[f3]])
 
+t = sym.Symbol('t')
+
 # Zeitableitungen der verallgemeinerten Koordinaten q(t)
 Qd = Q.diff(t,1)
 Qdd = Q.diff(t,2)

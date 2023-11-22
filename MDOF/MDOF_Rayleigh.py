@@ -5,7 +5,7 @@
 # ## MDOF (Systeme mit einem Freiheitsgrad f>1) und Rayleigh-Dämpfung
 # ### modale Entkopplung
 
-# In[176]:
+# In[217]:
 
 
 # -*- coding: utf-8 -*-
@@ -36,7 +36,7 @@ from matplotlib.widgets import MultiCursor
 # ### Hilfsfunktion normiere_matrix(matrix)
 # Normiert in einer Matrix in jedem Spaltenvektor den betragsmäßig größten Wert auf eins (Darstellungsnorm).
 
-# In[177]:
+# In[218]:
 
 
 def normiere_matrix(matrix):
@@ -49,7 +49,7 @@ def normiere_matrix(matrix):
 
 # ### Hilfsfunktion zur Berechnung des komplexen Frequenzganges
 
-# In[178]:
+# In[219]:
 
 
 def frf(ordnung,i,k,omega_e):
@@ -68,7 +68,7 @@ def frf(ordnung,i,k,omega_e):
 # ## Definition der Systemparameter
 # Alle Systemparameter wie Massen, Steifigkeiten oder Dämpfungen werden in SI-Einheiten angegeben.
 
-# In[179]:
+# In[220]:
 
 
 # Eingabe der Systemmatrizen M,C,K
@@ -89,7 +89,7 @@ alpha, beta = 0.9, 1e-4
 # ---
 # Bei proportionaler Dämpfung (Rayleigh-Dämpfung): $K = \alpha M + \beta C$.
 
-# In[180]:
+# In[221]:
 
 
 M = np.array([[m1, 0, 0],
@@ -108,7 +108,7 @@ K = alpha*M + beta*C
 # ## Systemmatrizen
 # ### Massenmatrix
 
-# In[181]:
+# In[222]:
 
 
 Math(rf'M = {sym.latex(Matrix(M))}')
@@ -116,7 +116,7 @@ Math(rf'M = {sym.latex(Matrix(M))}')
 
 # ### Steifigkeitsmatrix
 
-# In[182]:
+# In[223]:
 
 
 Math(rf'C = {sym.latex(Matrix(C))}')
@@ -124,13 +124,13 @@ Math(rf'C = {sym.latex(Matrix(C))}')
 
 # ### Dämpfungsmatrix
 
-# In[183]:
+# In[224]:
 
 
 Math(rf'K = {sym.latex(Matrix(K))}')
 
 
-# In[184]:
+# In[225]:
 
 
 # verallgemeinerte Koordinaten q(t)
@@ -141,6 +141,8 @@ Q = sym.Matrix([[q1],[q2],[q3]])
 f1, f2, f3 = dynamicsymbols('f1 f2 f3')
 F = sym.Matrix([[f1],[f2],[f3]])
 
+t = sym.Symbol('t')
+
 # Zeitableitungen der verallgemeinerten Koordinaten q(t)
 Qd = Q.diff(t,1)
 Qdd = Q.diff(t,2)
@@ -148,7 +150,7 @@ Qdd = Q.diff(t,2)
 
 # ### Dgl.-System
 
-# In[185]:
+# In[226]:
 
 
 display(Math(sym.latex(Matrix(M))+mlatex(Qdd)+'+'+sym.latex(Matrix(C))+mlatex(Qd)+sym.latex(Matrix(K))+mlatex(Q)+'='+mlatex(F)))
@@ -156,7 +158,7 @@ display(Math(sym.latex(Matrix(M))+mlatex(Qdd)+'+'+sym.latex(Matrix(C))+mlatex(Qd
 
 #  ### Anfangsbedingungen $q_{o}$ und $v_{0}$
 
-# In[186]:
+# In[227]:
 
 
 # Anfangsbedingungen
@@ -169,7 +171,7 @@ v_0 = np.array([0.5e-3, 1e-3, -0.5e-3])  # Anfangsgeschwindigkeit in mm/s
 # 
 # $A = M^{-1} \cdot C$
 
-# In[187]:
+# In[228]:
 
 
 A = np.matmul(np.linalg.inv(M),C)
@@ -180,7 +182,7 @@ A = np.matmul(np.linalg.inv(M),C)
 # 
 # $det \left( A - \lambda E \right) = 0$
 
-# In[188]:
+# In[229]:
 
 
 eigenwerte, eigenvektoren = np.linalg.eig(A)
@@ -195,7 +197,7 @@ sortierte_eigenvektoren = eigenvektoren[:, sort_indices]
 # 
 # $\omega _0 = \sqrt{ \lambda }$
 
-# In[189]:
+# In[230]:
 
 
 wn = np.sqrt(sortierte_eigenwerte)
@@ -204,13 +206,13 @@ wn
 
 # zugehörige Eigenvektoren $\psi$ und die Eigenvektormatrix $\Psi$
 
-# In[190]:
+# In[231]:
 
 
 sortierte_eigenvektoren
 
 
-# In[191]:
+# In[232]:
 
 
 ordnung = len(wn)
@@ -221,7 +223,7 @@ ordnung = len(wn)
 # 
 # normierte Eigenvektoren $\psi_{N}$
 
-# In[192]:
+# In[233]:
 
 
 psi = normiere_matrix(sortierte_eigenvektoren)
@@ -233,7 +235,7 @@ psi
 # 
 # $M_G = \Psi ^T M \Psi$
 
-# In[193]:
+# In[234]:
 
 
 psiT = np.transpose(psi)
@@ -246,7 +248,7 @@ np.around(MG,2)
 # 
 # $\phi ^{(i)} = \frac{\psi ^{(i)}} { \sqrt{{M_G}_{i,i} } }$
 
-# In[194]:
+# In[235]:
 
 
 phi = psi/(np.sqrt(np.diag(MG)))
@@ -254,7 +256,7 @@ phi = psi/(np.sqrt(np.diag(MG)))
 
 # Modalmatrix $\Phi$
 
-# In[195]:
+# In[236]:
 
 
 phi
@@ -264,7 +266,7 @@ phi
 # 
 # $\Phi^{T} \cdot M \cdot \Phi = E$
 
-# In[196]:
+# In[237]:
 
 
 E = np.dot(np.dot(np.transpose(phi),M),phi)
@@ -275,7 +277,7 @@ np.around(E,2)
 # $K_m =\Phi^T \cdot K \cdot \Phi$
 # 
 
-# In[197]:
+# In[238]:
 
 
 Km = np.dot(np.dot(np.transpose(phi),K),phi)
@@ -285,7 +287,7 @@ np.around(Km,4)
 # ### Die Lehrschen Dämpfungsmaße D
 # $D_i = \frac{ {K_m}_{i,i} }{2 \cdot {\omega_0}_i  }$
 
-# In[198]:
+# In[239]:
 
 
 D = np.diag(Km) / (2*wn)
@@ -296,7 +298,7 @@ D
 # $\omega = \omega_0 \cdot \sqrt{ 1-D^2 }$
 # 
 
-# In[199]:
+# In[240]:
 
 
 wd = wn * np.sqrt(1-D*D)
@@ -306,7 +308,7 @@ wd
 # ### Abklingkonstanten $\delta$ 
 # $\delta = D \cdot \omega_0$
 
-# In[200]:
+# In[241]:
 
 
 delta = D * wd
@@ -315,7 +317,7 @@ delta
 
 # ### Darstellung der Eigenvektoren als Knotenbilder(mode shapes)
 
-# In[201]:
+# In[242]:
 
 
 x = np.arange(ordnung+1)
@@ -361,7 +363,7 @@ plt.show()
 
 # ### Lösung der entkoppelten Gleichungen im Zeitbereich 
 
-# In[202]:
+# In[243]:
 
 
 # Lösung im Zeitbereich über modale Entkopplung
@@ -417,7 +419,7 @@ plt.show()
 
 # ### Frequenzgangmatrix berechnen und darstellen
 
-# In[203]:
+# In[244]:
 
 
 # Frequenzgangmatrix
