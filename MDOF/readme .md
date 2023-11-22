@@ -1,13 +1,9 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# # Experimentelle Modalanalyse (EMA) | Prof. J. Grabow
-# ## MDOF (Systeme mit einem Freiheitsgrad f>1) und Rayleigh-Dämpfung
-# ### modale Entkopplung
-
-# In[176]:
+# Experimentelle Modalanalyse (EMA) | Prof. J. Grabow
+## MDOF (Systeme mit einem Freiheitsgrad f>1) und Rayleigh-Dämpfung
+### modale Entkopplung
 
 
+```python
 # -*- coding: utf-8 -*-
 """
 Created on Fri Sep  1 19:13:41 2023
@@ -31,27 +27,25 @@ from sympy import *
 from sympy.physics.mechanics import dynamicsymbols, mlatex
 from IPython.display import Math, Latex
 from matplotlib.widgets import MultiCursor
+```
+
+### Hilfsfunktion normiere_matrix(matrix)
+Normiert in einer Matrix in jedem Spaltenvektor den betragsmäßig größten Wert auf eins (Darstellungsnorm).
 
 
-# ### Hilfsfunktion normiere_matrix(matrix)
-# Normiert in einer Matrix in jedem Spaltenvektor den betragsmäßig größten Wert auf eins (Darstellungsnorm).
-
-# In[177]:
-
-
+```python
 def normiere_matrix(matrix):
     """normiert in einer Matrix in jedem Spaltenvektor den betragsmäßig größten
     Wert auf eins"""
     max_abs_werte = np.max(np.abs(matrix), axis=0)
     normierte_matrix = matrix / max_abs_werte
     return normierte_matrix
+```
+
+### Hilfsfunktion zur Berechnung des komplexen Frequenzganges
 
 
-# ### Hilfsfunktion zur Berechnung des komplexen Frequenzganges
-
-# In[178]:
-
-
+```python
 def frf(ordnung,i,k,omega_e):
     # Estimate the frequency-response functions of the model.
     # erzeuge komplexen Null-Vektor in Länge des Vektors der Erregerfrequenz
@@ -63,35 +57,33 @@ def frf(ordnung,i,k,omega_e):
             ((0+1j) * omega_e - np.conj(eigenwert_k[n] ))
         f_vektor = f_vektor + S_1 + S_2
     return f_vektor
+```
+
+## Definition der Systemparameter
+Alle Systemparameter wie Massen, Steifigkeiten oder Dämpfungen werden in SI-Einheiten angegeben.
 
 
-# ## Definition der Systemparameter
-# Alle Systemparameter wie Massen, Steifigkeiten oder Dämpfungen werden in SI-Einheiten angegeben.
-
-# In[179]:
-
-
+```python
 # Eingabe der Systemmatrizen M,C,K
 m1, m2, m3 = (60e3, 60e3, 15e3)
 c1, c2, c3 = (30e6, 30e6, 10e6)
 k1, k2, k3 = (100, 250, 80)
 alpha, beta = 0.9, 1e-4
+```
+
+## Definition der Systemmatrizen
+Eingabe der Massenmatrix, Steifigkeitsmatrix und Dämpfungsmatrix
+
+### Eingabe der Matrizen und Anfangsbedingungen
+---
+- *M - Massenmatrix als Array*
+- *C - Steifigkeitsmatrix als Array*
+- *K - Dämfungsmatrix als Array*
+---
+Bei proportionaler Dämpfung (Rayleigh-Dämpfung): $K = \alpha M + \beta C$.
 
 
-# ## Definition der Systemmatrizen
-# Eingabe der Massenmatrix, Steifigkeitsmatrix und Dämpfungsmatrix
-# 
-# ### Eingabe der Matrizen und Anfangsbedingungen
-# ---
-# - *M - Massenmatrix als Array*
-# - *C - Steifigkeitsmatrix als Array*
-# - *K - Dämfungsmatrix als Array*
-# ---
-# Bei proportionaler Dämpfung (Rayleigh-Dämpfung): $K = \alpha M + \beta C$.
-
-# In[180]:
-
-
+```python
 M = np.array([[m1, 0, 0],
               [0, m2, 0],
               [0, 0, m3]])
@@ -103,36 +95,53 @@ K = np.array([[k1+k2, -k2,   0],
               [0, -k3,  k3]])
 # nur bei Rayleigh-Dämpfung
 K = alpha*M + beta*C
+```
+
+## Systemmatrizen
+### Massenmatrix
 
 
-# ## Systemmatrizen
-# ### Massenmatrix
-
-# In[181]:
-
-
+```python
 Math(rf'M = {sym.latex(Matrix(M))}')
+```
 
 
-# ### Steifigkeitsmatrix
-
-# In[182]:
 
 
+$\displaystyle M = \left[\begin{matrix}60000.0 & 0 & 0\\0 & 60000.0 & 0\\0 & 0 & 15000.0\end{matrix}\right]$
+
+
+
+### Steifigkeitsmatrix
+
+
+```python
 Math(rf'C = {sym.latex(Matrix(C))}')
+```
 
 
-# ### Dämpfungsmatrix
-
-# In[183]:
 
 
+$\displaystyle C = \left[\begin{matrix}60000000.0 & -30000000.0 & 0\\-30000000.0 & 40000000.0 & -10000000.0\\0 & -10000000.0 & 10000000.0\end{matrix}\right]$
+
+
+
+### Dämpfungsmatrix
+
+
+```python
 Math(rf'K = {sym.latex(Matrix(K))}')
+```
 
 
-# In[184]:
 
 
+$\displaystyle K = \left[\begin{matrix}60000.0 & -3000.0 & 0\\-3000.0 & 58000.0 & -1000.0\\0 & -1000.0 & 14500.0\end{matrix}\right]$
+
+
+
+
+```python
 # verallgemeinerte Koordinaten q(t)
 q1, q2, q3 = dynamicsymbols('q1 q2 q3')
 Q = sym.Matrix([[q1],[q2],[q3]])
@@ -144,180 +153,249 @@ F = sym.Matrix([[f1],[f2],[f3]])
 # Zeitableitungen der verallgemeinerten Koordinaten q(t)
 Qd = Q.diff(t,1)
 Qdd = Q.diff(t,2)
+```
+
+### Dgl.-System
 
 
-# ### Dgl.-System
-
-# In[185]:
-
-
+```python
 display(Math(sym.latex(Matrix(M))+mlatex(Qdd)+'+'+sym.latex(Matrix(C))+mlatex(Qd)+sym.latex(Matrix(K))+mlatex(Q)+'='+mlatex(F)))
+```
 
 
-#  ### Anfangsbedingungen $q_{o}$ und $v_{0}$
-
-# In[186]:
+$\displaystyle \left[\begin{matrix}60000.0 & 0 & 0\\0 & 60000.0 & 0\\0 & 0 & 15000.0\end{matrix}\right]\left[\begin{matrix}\ddot{q}_{1}\\\ddot{q}_{2}\\\ddot{q}_{3}\end{matrix}\right]+\left[\begin{matrix}60000000.0 & -30000000.0 & 0\\-30000000.0 & 40000000.0 & -10000000.0\\0 & -10000000.0 & 10000000.0\end{matrix}\right]\left[\begin{matrix}\dot{q}_{1}\\\dot{q}_{2}\\\dot{q}_{3}\end{matrix}\right]\left[\begin{matrix}60000.0 & -3000.0 & 0\\-3000.0 & 58000.0 & -1000.0\\0 & -1000.0 & 14500.0\end{matrix}\right]\left[\begin{matrix}q_{1}\\q_{2}\\q_{3}\end{matrix}\right]=\left[\begin{matrix}f_{1}\\f_{2}\\f_{3}\end{matrix}\right]$
 
 
+ ### Anfangsbedingungen $q_{o}$ und $v_{0}$
+
+
+```python
 # Anfangsbedingungen
 q_0 = np.array([1e-3, -2e-3, 0.5e-3])  # Anfangsweg in mm
 v_0 = np.array([0.5e-3, 1e-3, -0.5e-3])  # Anfangsgeschwindigkeit in mm/s
+```
+
+## Berechnungen zur Entkopplung des Dgl.-Systems
+### Die Systemmatrix A: 
+
+$A = M^{-1} \cdot C$
 
 
-# ## Berechnungen zur Entkopplung des Dgl.-Systems
-# ### Die Systemmatrix A: 
-# 
-# $A = M^{-1} \cdot C$
-
-# In[187]:
-
-
+```python
 A = np.matmul(np.linalg.inv(M),C)
+```
+
+### Das spezielle Eigenwertproblem
+$\left( A - \lambda \cdot E \right) \cdot \psi = 0$ 
+
+$det \left( A - \lambda E \right) = 0$
 
 
-# ### Das spezielle Eigenwertproblem
-# $\left( A - \lambda \cdot E \right) \cdot \psi = 0$ 
-# 
-# $det \left( A - \lambda E \right) = 0$
-
-# In[188]:
-
-
+```python
 eigenwerte, eigenvektoren = np.linalg.eig(A)
 
 # Sortiere die Eigenwerte und -vektoren nach den Eigenwerten
 sort_indices = np.argsort(eigenwerte)[::-1]
 sortierte_eigenwerte = eigenwerte[sort_indices]
 sortierte_eigenvektoren = eigenvektoren[:, sort_indices]
+```
+
+Eigenkreisfrequenzen (ungedämpft) sortiert nöch Größe:
+
+$\omega _0 = \sqrt{ \lambda }$
 
 
-# Eigenkreisfrequenzen (ungedämpft) sortiert nöch Größe:
-# 
-# $\omega _0 = \sqrt{ \lambda }$
-
-# In[189]:
-
-
+```python
 wn = np.sqrt(sortierte_eigenwerte)
 wn
+```
 
 
-# zugehörige Eigenvektoren $\psi$ und die Eigenvektormatrix $\Psi$
-
-# In[190]:
 
 
+    array([37.62931365, 27.62475937, 12.41937023])
+
+
+
+zugehörige Eigenvektoren $\psi$ und die Eigenvektormatrix $\Psi$
+
+
+```python
 sortierte_eigenvektoren
+```
 
 
-# In[191]:
 
 
+    array([[ 0.66815554, -0.28934219, -0.3389505 ],
+           [-0.55585897, -0.13707452, -0.57334103],
+           [ 0.49455938,  0.94736037, -0.7459173 ]])
+
+
+
+
+```python
 ordnung = len(wn)
+```
+
+### Normierung der Eigenvektoren
+In jedem Eigenvektor wird der betragsmäßig größte Wert immer auf eins normiert.
+
+normierte Eigenvektoren $\psi_{N}$
 
 
-# ### Normierung der Eigenvektoren
-# In jedem Eigenvektor wird der betragsmäßig größte Wert immer auf eins normiert.
-# 
-# normierte Eigenvektoren $\psi_{N}$
-
-# In[192]:
-
-
+```python
 psi = normiere_matrix(sortierte_eigenvektoren)
 psi
+```
 
 
-# ### Die generalisierte Massenmatrix $M_G$
-# generalisierte Massenmatrix:
-# 
-# $M_G = \Psi ^T M \Psi$
-
-# In[193]:
 
 
+    array([[ 1.        , -0.30541935, -0.45440761],
+           [-0.83193049, -0.144691  , -0.76863886],
+           [ 0.74018601,  1.        , -1.        ]])
+
+
+
+### Die generalisierte Massenmatrix $M_G$
+generalisierte Massenmatrix:
+
+$M_G = \Psi ^T M \Psi$
+
+
+```python
 psiT = np.transpose(psi)
 MG = np.dot(np.dot(psiT,M),psi)
 np.around(MG,2)
+```
 
 
-# ### Die Modalmatrix $\phi$
-# Normierung der Eigenvektoren $\psi \text{  auf  } \phi$
-# 
-# $\phi ^{(i)} = \frac{\psi ^{(i)}} { \sqrt{{M_G}_{i,i} } }$
-
-# In[194]:
 
 
+    array([[109744.63,     -0.  ,     -0.  ],
+           [    -0.  ,  21852.99,     -0.  ],
+           [    -0.  ,     -0.  ,  62837.52]])
+
+
+
+### Die Modalmatrix $\phi$
+Normierung der Eigenvektoren $\psi \text{  auf  } \phi$
+
+$\phi ^{(i)} = \frac{\psi ^{(i)}} { \sqrt{{M_G}_{i,i} } }$
+
+
+```python
 phi = psi/(np.sqrt(np.diag(MG)))
+```
+
+Modalmatrix $\Phi$
 
 
-# Modalmatrix $\Phi$
-
-# In[195]:
-
-
+```python
 phi
+```
 
 
-# Proberechnung
-# 
-# $\Phi^{T} \cdot M \cdot \Phi = E$
-
-# In[196]:
 
 
+    array([[ 0.00301862, -0.00206605, -0.00181274],
+           [-0.00251128, -0.00097878, -0.00306629],
+           [ 0.00223434,  0.00676464, -0.00398924]])
+
+
+
+Proberechnung
+
+$\Phi^{T} \cdot M \cdot \Phi = E$
+
+
+```python
 E = np.dot(np.dot(np.transpose(phi),M),phi)
 np.around(E,2)
+```
 
 
-# ### Die modale Dämpfungsmatrix $K_m$
-# $K_m =\Phi^T \cdot K \cdot \Phi$
-# 
-
-# In[197]:
 
 
+    array([[ 1., -0., -0.],
+           [-0.,  1., -0.],
+           [-0., -0.,  1.]])
+
+
+
+### Die modale Dämpfungsmatrix $K_m$
+$K_m =\Phi^T \cdot K \cdot \Phi$
+
+
+
+```python
 Km = np.dot(np.dot(np.transpose(phi),K),phi)
 np.around(Km,4)
+```
 
 
-# ### Die Lehrschen Dämpfungsmaße D
-# $D_i = \frac{ {K_m}_{i,i} }{2 \cdot {\omega_0}_i  }$
-
-# In[198]:
 
 
+    array([[ 1.0416, -0.    , -0.    ],
+           [-0.    ,  0.9763, -0.    ],
+           [-0.    , -0.    ,  0.9154]])
+
+
+
+### Die Lehrschen Dämpfungsmaße D
+$D_i = \frac{ {K_m}_{i,i} }{2 \cdot {\omega_0}_i  }$
+
+
+```python
 D = np.diag(Km) / (2*wn)
 D
+```
 
 
-# ### Eigenkreisfrequenzen (gedämpft) $\omega$
-# $\omega = \omega_0 \cdot \sqrt{ 1-D^2 }$
-# 
-
-# In[199]:
 
 
+    array([0.01384023, 0.01767097, 0.03685469])
+
+
+
+### Eigenkreisfrequenzen (gedämpft) $\omega$
+$\omega = \omega_0 \cdot \sqrt{ 1-D^2 }$
+
+
+
+```python
 wd = wn * np.sqrt(1-D*D)
 wd
+```
 
 
-# ### Abklingkonstanten $\delta$ 
-# $\delta = D \cdot \omega_0$
-
-# In[200]:
 
 
+    array([37.6257095 , 27.62044594, 12.41093295])
+
+
+
+### Abklingkonstanten $\delta$ 
+$\delta = D \cdot \omega_0$
+
+
+```python
 delta = D * wd
 delta
+```
 
 
-# ### Darstellung der Eigenvektoren als Knotenbilder(mode shapes)
-
-# In[201]:
 
 
+    array([0.52074838, 0.48808014, 0.45740108])
+
+
+
+### Darstellung der Eigenvektoren als Knotenbilder(mode shapes)
+
+
+```python
 x = np.arange(ordnung+1)
 x = np.array([0, 3, 6, 8])  # Orte der darzustellenden Eigenvektoren
 psi_1 = psi[:,0]
@@ -357,13 +435,18 @@ axs[2].stem(x,y1, linefmt='red', basefmt='lightgray')
 axs[2].stem(x,-y1, linefmt='red', basefmt='lightgray')
 
 plt.show()
+```
 
 
-# ### Lösung der entkoppelten Gleichungen im Zeitbereich 
+    
+![png](output_49_0.png)
+    
 
-# In[202]:
+
+### Lösung der entkoppelten Gleichungen im Zeitbereich 
 
 
+```python
 # Lösung im Zeitbereich über modale Entkopplung
 
 # modale Transformation der Anfangsbedingungen
@@ -413,13 +496,18 @@ axs[1].scatter(0,q_0[1], color='red', zorder=5)
 axs[2].scatter(0,q_0[2], color='red', zorder=5)
 
 plt.show()
+```
 
 
-# ### Frequenzgangmatrix berechnen und darstellen
+    
+![png](output_51_0.png)
+    
 
-# In[203]:
+
+### Frequenzgangmatrix berechnen und darstellen
 
 
+```python
 # Frequenzgangmatrix
 
 # Residuum berechnen
@@ -465,4 +553,10 @@ for ax in axs:
     ax.grid(True, color='gray', linestyle='--', linewidth=0.5)
 
 plt.show()
+```
+
+
+    
+![png](output_53_0.png)
+    
 
