@@ -13,14 +13,19 @@ Program history
 09.10.2023    V. 1.1    Anfangsbedingungen
 10.10.2023    V  1.2    Lösung des entkoppelten Systems im Zeitbereich
 16.11.2023    V  1.3    Frequenzgang
+22.11.2023    V  1.4    Dokumentation
 
 @author: Prof. Jörg Grabow (grabow@amesys.de)
 """
-__version__ = '1.3'
+__version__ = '1.4'
 __author__ = 'Joe Grabow'
 
 import numpy as np
 import matplotlib.pyplot as plt
+import sympy as sym
+from sympy import *
+from sympy.physics.mechanics import dynamicsymbols, mlatex
+from IPython.display import Math, Latex
 from matplotlib.widgets import MultiCursor
 ```
 
@@ -92,7 +97,76 @@ K = np.array([[k1+k2, -k2,   0],
 K = alpha*M + beta*C
 ```
 
- Anfangsbedingungen $q_{o}$ und $v_{0}$
+## Systemmatrizen
+### Massenmatrix
+
+
+```python
+Math(rf'M = {sym.latex(Matrix(M))}')
+```
+
+
+
+
+$\displaystyle M = \left[\begin{matrix}60000.0 & 0 & 0\\0 & 60000.0 & 0\\0 & 0 & 15000.0\end{matrix}\right]$
+
+
+
+### Steifigkeitsmatrix
+
+
+```python
+Math(rf'C = {sym.latex(Matrix(C))}')
+```
+
+
+
+
+$\displaystyle C = \left[\begin{matrix}60000000.0 & -30000000.0 & 0\\-30000000.0 & 40000000.0 & -10000000.0\\0 & -10000000.0 & 10000000.0\end{matrix}\right]$
+
+
+
+### Dämpfungsmatrix
+
+
+```python
+Math(rf'K = {sym.latex(Matrix(K))}')
+```
+
+
+
+
+$\displaystyle K = \left[\begin{matrix}60000.0 & -3000.0 & 0\\-3000.0 & 58000.0 & -1000.0\\0 & -1000.0 & 14500.0\end{matrix}\right]$
+
+
+
+
+```python
+# verallgemeinerte Koordinaten q(t)
+q1, q2, q3 = dynamicsymbols('q1 q2 q3')
+Q = sym.Matrix([[q1],[q2],[q3]])
+
+# Erregerkräfte f(t)
+f1, f2, f3 = dynamicsymbols('f1 f2 f3')
+F = sym.Matrix([[f1],[f2],[f3]])
+
+# Zeitableitungen der verallgemeinerten Koordinaten q(t)
+Qd = Q.diff(t,1)
+Qdd = Q.diff(t,2)
+```
+
+### Dgl.-System
+
+
+```python
+display(Math(sym.latex(Matrix(M))+mlatex(Qdd)+'+'+sym.latex(Matrix(C))+mlatex(Qd)+sym.latex(Matrix(K))+mlatex(Q)+'='+mlatex(F)))
+```
+
+
+$\displaystyle \left[\begin{matrix}60000.0 & 0 & 0\\0 & 60000.0 & 0\\0 & 0 & 15000.0\end{matrix}\right]\left[\begin{matrix}\ddot{q}_{1}\\\ddot{q}_{2}\\\ddot{q}_{3}\end{matrix}\right]+\left[\begin{matrix}60000000.0 & -30000000.0 & 0\\-30000000.0 & 40000000.0 & -10000000.0\\0 & -10000000.0 & 10000000.0\end{matrix}\right]\left[\begin{matrix}\dot{q}_{1}\\\dot{q}_{2}\\\dot{q}_{3}\end{matrix}\right]\left[\begin{matrix}60000.0 & -3000.0 & 0\\-3000.0 & 58000.0 & -1000.0\\0 & -1000.0 & 14500.0\end{matrix}\right]\left[\begin{matrix}q_{1}\\q_{2}\\q_{3}\end{matrix}\right]=\left[\begin{matrix}f_{1}\\f_{2}\\f_{3}\end{matrix}\right]$
+
+
+ ### Anfangsbedingungen $q_{o}$ und $v_{0}$
 
 
 ```python
@@ -101,7 +175,7 @@ q_0 = np.array([1e-3, -2e-3, 0.5e-3])  # Anfangsweg in mm
 v_0 = np.array([0.5e-3, 1e-3, -0.5e-3])  # Anfangsgeschwindigkeit in mm/s
 ```
 
-## Berechnungen
+## Berechnungen zur Entkopplung des Dgl.-Systems
 ### Die Systemmatrix A: 
 
 $A = M^{-1} \cdot C$
@@ -365,7 +439,7 @@ plt.show()
 
 
     
-![png](output_40_0.png)
+![png](output_49_0.png)
     
 
 
@@ -426,7 +500,7 @@ plt.show()
 
 
     
-![png](output_42_0.png)
+![png](output_51_0.png)
     
 
 
@@ -483,6 +557,6 @@ plt.show()
 
 
     
-![png](output_44_0.png)
+![png](output_53_0.png)
     
 
