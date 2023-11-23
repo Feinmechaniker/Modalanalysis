@@ -5,7 +5,7 @@
 # ## MDOF (Systeme mit einem Freiheitsgrad f>1) und Rayleigh-Dämpfung
 # ### modale Entkopplung
 
-# In[217]:
+# In[1]:
 
 
 # -*- coding: utf-8 -*-
@@ -36,7 +36,7 @@ from matplotlib.widgets import MultiCursor
 # ### Hilfsfunktion normiere_matrix(matrix)
 # Normiert in einer Matrix in jedem Spaltenvektor den betragsmäßig größten Wert auf eins (Darstellungsnorm).
 
-# In[218]:
+# In[2]:
 
 
 def normiere_matrix(matrix):
@@ -49,7 +49,7 @@ def normiere_matrix(matrix):
 
 # ### Hilfsfunktion zur Berechnung des komplexen Frequenzganges
 
-# In[219]:
+# In[3]:
 
 
 def frf(ordnung,i,k,omega_e):
@@ -68,7 +68,7 @@ def frf(ordnung,i,k,omega_e):
 # ## Definition der Systemparameter
 # Alle Systemparameter wie Massen, Steifigkeiten oder Dämpfungen werden in SI-Einheiten angegeben.
 
-# In[220]:
+# In[4]:
 
 
 # Eingabe der Systemmatrizen M,C,K
@@ -89,7 +89,7 @@ alpha, beta = 0.9, 1e-4
 # ---
 # Bei proportionaler Dämpfung (Rayleigh-Dämpfung): $K = \alpha M + \beta C$.
 
-# In[221]:
+# In[5]:
 
 
 M = np.array([[m1, 0, 0],
@@ -108,7 +108,7 @@ K = alpha*M + beta*C
 # ## Systemmatrizen
 # ### Massenmatrix
 
-# In[222]:
+# In[6]:
 
 
 Math(rf'M = {sym.latex(Matrix(M))}')
@@ -116,7 +116,7 @@ Math(rf'M = {sym.latex(Matrix(M))}')
 
 # ### Steifigkeitsmatrix
 
-# In[223]:
+# In[7]:
 
 
 Math(rf'C = {sym.latex(Matrix(C))}')
@@ -124,13 +124,13 @@ Math(rf'C = {sym.latex(Matrix(C))}')
 
 # ### Dämpfungsmatrix
 
-# In[224]:
+# In[8]:
 
 
 Math(rf'K = {sym.latex(Matrix(K))}')
 
 
-# In[225]:
+# In[9]:
 
 
 # verallgemeinerte Koordinaten q(t)
@@ -141,16 +141,15 @@ Q = sym.Matrix([[q1],[q2],[q3]])
 f1, f2, f3 = dynamicsymbols('f1 f2 f3')
 F = sym.Matrix([[f1],[f2],[f3]])
 
-t = sym.Symbol('t')
-
 # Zeitableitungen der verallgemeinerten Koordinaten q(t)
+t = sym.Symbol('t')
 Qd = Q.diff(t,1)
 Qdd = Q.diff(t,2)
 
 
 # ### Dgl.-System
 
-# In[226]:
+# In[10]:
 
 
 display(Math(sym.latex(Matrix(M))+mlatex(Qdd)+'+'+sym.latex(Matrix(C))+mlatex(Qd)+sym.latex(Matrix(K))+mlatex(Q)+'='+mlatex(F)))
@@ -158,7 +157,7 @@ display(Math(sym.latex(Matrix(M))+mlatex(Qdd)+'+'+sym.latex(Matrix(C))+mlatex(Qd
 
 #  ### Anfangsbedingungen $q_{o}$ und $v_{0}$
 
-# In[227]:
+# In[11]:
 
 
 # Anfangsbedingungen
@@ -171,7 +170,7 @@ v_0 = np.array([0.5e-3, 1e-3, -0.5e-3])  # Anfangsgeschwindigkeit in mm/s
 # 
 # $A = M^{-1} \cdot C$
 
-# In[228]:
+# In[12]:
 
 
 A = np.matmul(np.linalg.inv(M),C)
@@ -182,7 +181,7 @@ A = np.matmul(np.linalg.inv(M),C)
 # 
 # $det \left( A - \lambda E \right) = 0$
 
-# In[229]:
+# In[13]:
 
 
 eigenwerte, eigenvektoren = np.linalg.eig(A)
@@ -197,7 +196,7 @@ sortierte_eigenvektoren = eigenvektoren[:, sort_indices]
 # 
 # $\omega _0 = \sqrt{ \lambda }$
 
-# In[230]:
+# In[14]:
 
 
 wn = np.sqrt(sortierte_eigenwerte)
@@ -206,13 +205,13 @@ wn
 
 # zugehörige Eigenvektoren $\psi$ und die Eigenvektormatrix $\Psi$
 
-# In[231]:
+# In[15]:
 
 
 sortierte_eigenvektoren
 
 
-# In[232]:
+# In[16]:
 
 
 ordnung = len(wn)
@@ -223,19 +222,29 @@ ordnung = len(wn)
 # 
 # normierte Eigenvektoren $\psi_{N}$
 
-# In[233]:
+# In[17]:
 
 
 psi = normiere_matrix(sortierte_eigenvektoren)
 psi
 
 
-# ### Die generalisierte Massenmatrix $M_G$
+# ### Transformation der Koordinate q(t) ind den Modalraum p(t)
+
+# $ \bar{q}=\Psi \cdot \bar{p} $
+# 
+# $ M\Psi \ddot{\bar{p}} + K\Psi \dot{\bar{p}} + C\Psi \bar{p} = \bar{f} $
+# 
+# $ \Psi ^{T} M\Psi \ddot{\bar{p}} + \Psi ^{^{T}} K\Psi \dot{\bar{p}} + \Psi ^{T} C\Psi \bar{p} = \Psi ^{T} \bar{f} $
+# 
+# $ M_{G}\ \ddot{\bar{p}} + K_{G}\ \dot{\bar{p}} + C_{G}\ \bar{p} = \Psi ^{T} \bar{f} $
+
+# ### Die generalisierte Massenmatrix $M_G$ im Modalraum
 # generalisierte Massenmatrix:
 # 
 # $M_G = \Psi ^T M \Psi$
 
-# In[234]:
+# In[18]:
 
 
 psiT = np.transpose(psi)
@@ -244,11 +253,16 @@ np.around(MG,2)
 
 
 # ### Die Modalmatrix $\phi$
+# 
+# $ \Phi^{T} M \Phi \ \ddot{\bar{p}} + \Phi ^{^{T}} K\Phi\ \dot{\bar{p}} + \Phi ^{T} C\Phi \ \bar{p} = \Phi ^{T} \bar{f} $
+# 
+# $ E \ddot{\bar{p}} + K_{m} \dot{\bar{p}} + \Omega  \bar{p} = \Phi ^{T} \bar{f} $
+# 
 # Normierung der Eigenvektoren $\psi \text{  auf  } \phi$
 # 
 # $\phi ^{(i)} = \frac{\psi ^{(i)}} { \sqrt{{M_G}_{i,i} } }$
 
-# In[235]:
+# In[19]:
 
 
 phi = psi/(np.sqrt(np.diag(MG)))
@@ -256,7 +270,7 @@ phi = psi/(np.sqrt(np.diag(MG)))
 
 # Modalmatrix $\Phi$
 
-# In[236]:
+# In[20]:
 
 
 phi
@@ -266,7 +280,7 @@ phi
 # 
 # $\Phi^{T} \cdot M \cdot \Phi = E$
 
-# In[237]:
+# In[21]:
 
 
 E = np.dot(np.dot(np.transpose(phi),M),phi)
@@ -277,17 +291,35 @@ np.around(E,2)
 # $K_m =\Phi^T \cdot K \cdot \Phi$
 # 
 
-# In[238]:
+# In[22]:
 
 
 Km = np.dot(np.dot(np.transpose(phi),K),phi)
 np.around(Km,4)
 
 
+# ### Die Spektralmatrix $ \Omega $
+# $ \Omega =\Phi^T \cdot C \cdot \Phi $
+
+# In[23]:
+
+
+CSp = np.dot(np.dot(np.transpose(phi),C),phi)
+np.around(CSp,4)
+
+
+# ### Entkoppeltes Dgl.-System im Modalraum
+# 
+# $1\cdot \ddot{p_{1}}+2 D_{1} \omega _{01} \ \dot{p_{1}} + \omega _{01}^{2} \ p{_{1}} =\Phi _{11} f_{1} + \Phi _{21} f_{2} +\Phi _{31} f_{3} $
+# 
+# $ 1\cdot \ddot{p_{2}}+2 D_{2} \omega _{02} \ \dot{p_{2}} + \omega _{02}^{2} \ p{_{2}} =\Phi _{12} f_{1} + \Phi _{22} f_{2} +\Phi _{32} f_{3} $
+# 
+# $ 1\cdot \ddot{p_{3}}+2 D_{3} \omega _{03} \ \dot{p_{3}} + \omega _{03}^{2} \ p{_{3}} =\Phi _{13} f_{1} + \Phi _{23} f_{2} +\Phi _{33} f_{3} $
+
 # ### Die Lehrschen Dämpfungsmaße D
 # $D_i = \frac{ {K_m}_{i,i} }{2 \cdot {\omega_0}_i  }$
 
-# In[239]:
+# In[24]:
 
 
 D = np.diag(Km) / (2*wn)
@@ -298,7 +330,7 @@ D
 # $\omega = \omega_0 \cdot \sqrt{ 1-D^2 }$
 # 
 
-# In[240]:
+# In[25]:
 
 
 wd = wn * np.sqrt(1-D*D)
@@ -308,7 +340,7 @@ wd
 # ### Abklingkonstanten $\delta$ 
 # $\delta = D \cdot \omega_0$
 
-# In[241]:
+# In[26]:
 
 
 delta = D * wd
@@ -317,7 +349,7 @@ delta
 
 # ### Darstellung der Eigenvektoren als Knotenbilder(mode shapes)
 
-# In[242]:
+# In[27]:
 
 
 x = np.arange(ordnung+1)
@@ -363,7 +395,7 @@ plt.show()
 
 # ### Lösung der entkoppelten Gleichungen im Zeitbereich 
 
-# In[243]:
+# In[28]:
 
 
 # Lösung im Zeitbereich über modale Entkopplung
@@ -419,7 +451,7 @@ plt.show()
 
 # ### Frequenzgangmatrix berechnen und darstellen
 
-# In[244]:
+# In[29]:
 
 
 # Frequenzgangmatrix

@@ -150,9 +150,8 @@ Q = sym.Matrix([[q1],[q2],[q3]])
 f1, f2, f3 = dynamicsymbols('f1 f2 f3')
 F = sym.Matrix([[f1],[f2],[f3]])
 
-t = sym.Symbol('t')
-
 # Zeitableitungen der verallgemeinerten Koordinaten q(t)
+t = sym.Symbol('t')
 Qd = Q.diff(t,1)
 Qdd = Q.diff(t,2)
 ```
@@ -260,7 +259,17 @@ psi
 
 
 
-### Die generalisierte Massenmatrix $M_G$
+### Transformation der Koordinate q(t) ind den Modalraum p(t)
+
+$ \bar{q}=\Psi \cdot \bar{p} $
+
+$ M\Psi \ddot{\bar{p}} + K\Psi \dot{\bar{p}} + C\Psi \bar{p} = \bar{f} $
+
+$ \Psi ^{T} M\Psi \ddot{\bar{p}} + \Psi ^{^{T}} K\Psi \dot{\bar{p}} + \Psi ^{T} C\Psi \bar{p} = \Psi ^{T} \bar{f} $
+
+$ M_{G}\ \ddot{\bar{p}} + K_{G}\ \dot{\bar{p}} + C_{G}\ \bar{p} = \Psi ^{T} \bar{f} $
+
+### Die generalisierte Massenmatrix $M_G$ im Modalraum
 generalisierte Massenmatrix:
 
 $M_G = \Psi ^T M \Psi$
@@ -282,6 +291,11 @@ np.around(MG,2)
 
 
 ### Die Modalmatrix $\phi$
+
+$ \Phi^{T} M \Phi \ \ddot{\bar{p}} + \Phi ^{^{T}} K\Phi\ \dot{\bar{p}} + \Phi ^{T} C\Phi \ \bar{p} = \Phi ^{T} \bar{f} $
+
+$ E \ddot{\bar{p}} + K_{m} \dot{\bar{p}} + \Omega  \bar{p} = \Phi ^{T} \bar{f} $
+
 Normierung der Eigenvektoren $\psi \text{  auf  } \phi$
 
 $\phi ^{(i)} = \frac{\psi ^{(i)}} { \sqrt{{M_G}_{i,i} } }$
@@ -344,6 +358,32 @@ np.around(Km,4)
            [-0.    , -0.    ,  0.9154]])
 
 
+
+### Die Spektralmatrix $ \Omega $
+$ \Omega =\Phi^T \cdot C \cdot \Phi $
+
+
+```python
+CSp = np.dot(np.dot(np.transpose(phi),C),phi)
+np.around(CSp,4)
+```
+
+
+
+
+    array([[1415.9652,   -0.    ,   -0.    ],
+           [  -0.    ,  763.1273,   -0.    ],
+           [  -0.    ,   -0.    ,  154.2408]])
+
+
+
+### Entkoppeltes Dgl.-System im Modalraum
+
+$1\cdot \ddot{p_{1}}+2 D_{1} \omega _{01} \ \dot{p_{1}} + \omega _{01}^{2} \ p{_{1}} =\Phi _{11} f_{1} + \Phi _{21} f_{2} +\Phi _{31} f_{3} $
+
+$ 1\cdot \ddot{p_{2}}+2 D_{2} \omega _{02} \ \dot{p_{2}} + \omega _{02}^{2} \ p{_{2}} =\Phi _{12} f_{1} + \Phi _{22} f_{2} +\Phi _{32} f_{3} $
+
+$ 1\cdot \ddot{p_{3}}+2 D_{3} \omega _{03} \ \dot{p_{3}} + \omega _{03}^{2} \ p{_{3}} =\Phi _{13} f_{1} + \Phi _{23} f_{2} +\Phi _{33} f_{3} $
 
 ### Die Lehrschen Dämpfungsmaße D
 $D_i = \frac{ {K_m}_{i,i} }{2 \cdot {\omega_0}_i  }$
@@ -441,7 +481,7 @@ plt.show()
 
 
     
-![png](output_49_0.png)
+![png](output_54_0.png)
     
 
 
@@ -502,7 +542,7 @@ plt.show()
 
 
     
-![png](output_51_0.png)
+![png](output_56_0.png)
     
 
 
@@ -559,6 +599,6 @@ plt.show()
 
 
     
-![png](output_53_0.png)
+![png](output_58_0.png)
     
 
