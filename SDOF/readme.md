@@ -95,9 +95,7 @@ psi_conjugate = np.conj(psi)
 res = 0 - 1j / (2 * w * m_1)
 res_conjugate = np.conj(res)
 ```
-
 ### Berechnete Kennwerte 
-
 
 ```python
 # Datenfeld zur Ausgabe
@@ -112,8 +110,8 @@ data = [
     ("Konstante C2", "m", C_2, 0),
     ("Amplitude A", "m", A, 0),
     ("Phasenwinkel " +"\u03d5", "Grad", phi_degrees, 0),
-    ("Eigenwert " + "\u03c8", "m", np.real(psi), np.imag(psi)),
-    ("Eigenwert " + "\u0305\u03c8", "m", np.real(psi_conjugate), np.imag(psi_conjugate)),
+    ("Eigenvektor " + "\u03c8", "m", np.real(psi), np.imag(psi)),
+    ("Eigenvektor " + "\u0305\u03c8", "m", np.real(psi_conjugate), np.imag(psi_conjugate)),
     ("Residuum R", "m/Ns", 0, np.imag(res)),
     ("Residuum " + "R\u0305", "m/Ns", 0, np.imag(res_conjugate))
 ]
@@ -155,9 +153,9 @@ print(tabulate(formatted_data, headers, tablefmt="fancy_grid"))
     ├────────────────────────────────────┼───────────┼─────────┼────────────┤
     │ Phasenwinkel ϕ                     │ Grad      │ 18.4349 │     0      │
     ├────────────────────────────────────┼───────────┼─────────┼────────────┤
-    │ Eigenwert ψ                        │ m         │  0.005  │    -0.015  │
+    │ Eigenvektor ψ                      │ m         │  0.005  │    -0.015  │
     ├────────────────────────────────────┼───────────┼─────────┼────────────┤
-    │ Eigenwert ̅ψ                        │ m         │  0.005  │     0.015  │
+    │ Eigenvektor ̅ψ                      │ m         │  0.005  │     0.015  │
     ├────────────────────────────────────┼───────────┼─────────┼────────────┤
     │ Residuum R                         │ m/Ns      │  0      │    -0.0071 │
     ├────────────────────────────────────┼───────────┼─────────┼────────────┤
