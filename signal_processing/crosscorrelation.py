@@ -3,7 +3,7 @@
 
 # # Experimentelle Modalanalyse (EMA) | Prof. J. Grabow
 # ## Signalanalyse
-# ### Autokorrelationsfunktionen
+# ### Kreuzkorrelationsfunktionen
 
 # -*- coding: utf-8 -*-
 """
@@ -31,22 +31,36 @@ def autocorrelation_function(data):
         acf.append(sum_term / (N - k))
     return acf
 
+# Funktion zur Berechnung der Kreuzkorrelationsfunktion
+def crosscorrelation_function(data_1, data_2):
+    N = len(data_1) 
+    ccf = []
+    for k in range(N):
+        sum_term = sum(data_1[i] * data_2[i - k] for i in range(k, N))
+        ccf.append(sum_term / (N - k))
+    return ccf
+
+def gaussimpuls_vector(N, M, sigma):
+    x = np.arange(N)
+    gauss_impulse = np.exp(-(x - M)**2 / (2 * sigma**2))
+    return gauss_impulse
+
 def sinus_function(x, amplitude, frequency, phase):
     return amplitude * np.sin(2 * np.pi * frequency * x + phase)
 
 def generate_white_noise(N):
-    return np.random.randn(N)
+    return np.random.randn(N) / 2
 
-def plot_time_series_analysis(title, signal, acf):
+def plot_time_series_analysis(title_1, title_2, signal, ccf):
     fig, axs = plt.subplots(2, 1, figsize=(10, 7))
-    fig.suptitle(title)
+    fig.suptitle(title_1)
 
-    axs[0].plot(x_values, signal, '-', color='cornflowerblue', label=title)
+    axs[0].plot(x_values, signal, '-', color='cornflowerblue', label=title_1)
     axs[0].legend(loc='upper right')
     axs[0].set_xlabel('Abtastwerte')
     axs[0].set_ylabel('Amplitude')
 
-    axs[1].plot(x_values, acf, '-', color='cornflowerblue', label="Autokorrelationsfunktion")
+    axs[1].plot(x_values, ccf, '-', color='cornflowerblue', label=title_2)
     axs[1].legend(loc='upper right')
     axs[1].set_xlabel('Abtastwerte')
     axs[1].set_ylabel('Amplitude')
@@ -55,26 +69,20 @@ def plot_time_series_analysis(title, signal, acf):
     for ax in axs:
         ax.grid(True, color='gray', linestyle='--', linewidth=0.5)
 
-    # Markierung der Abtatswerte bei null
-    axs[0].scatter(0, signal[0], color='red', zorder=5)
-    axs[1].scatter(0, acf[0], color='red', zorder=5)
-
     plt.show()
 
 # Testfunktionen erstellen
 N = 1000
 x_values = np.arange(N)
-sinus_wave = sinus_function(x_values, amplitude=3, frequency=0.01, phase=0)
+impulse_1 = gaussimpuls_vector(N, 200, 10)
+impulse_2 = gaussimpuls_vector(N, 700, 10)
+ccf = crosscorrelation_function(impulse_2, impulse_1) 
 noise = generate_white_noise(N)
-sinus_noise = sinus_wave + noise
+impulse_2_noise = impulse_2 + noise
+ccf_noise = crosscorrelation_function(impulse_2_noise, impulse_1) 
 
-# Autokorrelationsfunktion berechnen und plotten
-acf_sinus_wave = autocorrelation_function(sinus_wave)
-plot_time_series_analysis('Sinusfunktion', sinus_wave, acf_sinus_wave)
-
-acf_white_noise = autocorrelation_function(noise)
-plot_time_series_analysis('weißes Rauschen', noise, acf_white_noise)
-
-acf_sinus_noise = autocorrelation_function(sinus_noise)
-plot_time_series_analysis('Sinus überlagert mit Rauschen', sinus_noise, acf_sinus_noise)
+# Funktion berechnen und plotten
+plot_time_series_analysis('Gauss-Impulse', 'Kreuzkorrelation', impulse_1+impulse_2, ccf)
+plot_time_series_analysis('TX-Impuls', ' RX-Impuls gestört', impulse_1, impulse_2_noise)
+plot_time_series_analysis('Kreuzkorrelation ungestört', 'Kreuzkorrelation gestört', ccf, ccf_noise)
 
