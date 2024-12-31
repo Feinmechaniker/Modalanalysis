@@ -5,9 +5,6 @@
 # ## MDOF (Systeme mit einem Freiheitsgrad f>1) und Rayleigh-Dämpfung
 # ### modale Entkopplung
 
-# In[1]:
-
-
 # -*- coding: utf-8 -*-
 """
 Created on Fri Sep  1 19:13:41 2023
@@ -18,10 +15,11 @@ Program history
 10.10.2023    V  1.2    Lösung des entkoppelten Systems im Zeitbereich
 16.11.2023    V  1.3    Frequenzgang
 22.11.2023    V  1.4    Dokumentation
+31.12.2024    V  1.5    Scaling the y-axis
 
 @author: Prof. Jörg Grabow (grabow@amesys.de)
 """
-__version__ = '1.4'
+__version__ = '1.5'
 __author__ = 'Joe Grabow'
 
 import numpy as np
@@ -469,22 +467,26 @@ omega_e = np.arange(0, 60, 0.1)
 
 # Wahl des Frequenzgangmatrixelementes zur Berechnung und Darstellung
 out_frf = 0
-in_frf = 1
+in_frf = 0
 
 frequenzgang = frf(ordnung, out_frf, in_frf, omega_e)
-amplitude = 20*np.log10(np.abs(frequenzgang))  # Amplitude in dB
+amplitude = np.abs(frequenzgang)  # Amplitude
 phase_radian = np.angle(frequenzgang)
 phase_degree = np.degrees(phase_radian)
 
 # Plot Amplitudenfrequenzgang
 fig, axs = plt.subplots(2, 1,figsize=(10,7))
 fig.suptitle('Amplitudenfrequenzgang')
-#axs[0].set_yscale("log")
+axs[0].set_yscale("log")
 axs[0].set_xlabel('Erregerkreisfrequenz in rad/s')
-axs[0].set_ylabel('Amplitude in dB')
+axs[0].set_ylabel('Amplitude')
 axs[0].plot(omega_e, amplitude, '-', color='cornflowerblue',
             label='FRF '+ str(out_frf) + str(in_frf))
-axs[0].set_ylim(-250)
+
+# Für logarithmischen Maßstab nur positive Werte berücksichtigen
+positive_amplitude = [amp for amp in amplitude if amp > 0]
+y_min, y_max = min(positive_amplitude), max(positive_amplitude)
+axs[0].set_ylim([y_min * 0.9, y_max * 1.1])
 axs[0].legend(loc='upper right')
 
 #axs[1].set_ylim(-180)
