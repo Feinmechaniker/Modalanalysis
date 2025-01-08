@@ -5,6 +5,9 @@
 # ## MDOF (Systeme mit einem Freiheitsgrad f>1) und Rayleigh-Dämpfung
 # ### modale Entkopplung
 
+# In[297]:
+
+
 # -*- coding: utf-8 -*-
 """
 Created on Fri Sep  1 19:13:41 2023
@@ -14,12 +17,13 @@ Program history
 09.10.2023    V. 1.1    Anfangsbedingungen
 10.10.2023    V  1.2    Lösung des entkoppelten Systems im Zeitbereich
 16.11.2023    V  1.3    Frequenzgang
-22.11.2023    V  1.4    Dokumentation
-31.12.2024    V  1.5    Scaling the y-axis
+23.11.2023    V  1.4    Dokumentation
+31.12.2024    V  1.5    Scale y-Achse 
+08.01.2025    V  1.6    Rayleigh-Quotient eingefügt
 
 @author: Prof. Jörg Grabow (grabow@amesys.de)
 """
-__version__ = '1.5'
+__version__ = '1.6'
 __author__ = 'Joe Grabow'
 
 import numpy as np
@@ -34,7 +38,7 @@ from matplotlib.widgets import MultiCursor
 # ### Hilfsfunktion normiere_matrix(matrix)
 # Normiert in einer Matrix in jedem Spaltenvektor den betragsmäßig größten Wert auf eins (Darstellungsnorm).
 
-# In[2]:
+# In[299]:
 
 
 def normiere_matrix(matrix):
@@ -47,7 +51,7 @@ def normiere_matrix(matrix):
 
 # ### Hilfsfunktion zur Berechnung des komplexen Frequenzganges
 
-# In[3]:
+# In[301]:
 
 
 def frf(ordnung,i,k,omega_e):
@@ -66,7 +70,7 @@ def frf(ordnung,i,k,omega_e):
 # ## Definition der Systemparameter
 # Alle Systemparameter wie Massen, Steifigkeiten oder Dämpfungen werden in SI-Einheiten angegeben.
 
-# In[4]:
+# In[418]:
 
 
 # Eingabe der Systemmatrizen M,C,K
@@ -87,7 +91,11 @@ alpha, beta = 0.9, 1e-4
 # ---
 # Bei proportionaler Dämpfung (Rayleigh-Dämpfung): $K = \alpha M + \beta C$.
 
-# In[5]:
+# <div class="alert alert-block alert-info">
+# <b>Systemmatritzen:</b> 
+# </div>
+
+# In[421]:
 
 
 M = np.array([[m1, 0, 0],
@@ -103,10 +111,9 @@ K = np.array([[k1+k2, -k2,   0],
 K = alpha*M + beta*C
 
 
-# ## Systemmatrizen
 # ### Massenmatrix
 
-# In[6]:
+# In[307]:
 
 
 Math(rf'M = {sym.latex(Matrix(M))}')
@@ -114,7 +121,7 @@ Math(rf'M = {sym.latex(Matrix(M))}')
 
 # ### Steifigkeitsmatrix
 
-# In[7]:
+# In[309]:
 
 
 Math(rf'C = {sym.latex(Matrix(C))}')
@@ -122,13 +129,13 @@ Math(rf'C = {sym.latex(Matrix(C))}')
 
 # ### Dämpfungsmatrix
 
-# In[8]:
+# In[311]:
 
 
 Math(rf'K = {sym.latex(Matrix(K))}')
 
 
-# In[9]:
+# In[312]:
 
 
 # verallgemeinerte Koordinaten q(t)
@@ -147,7 +154,7 @@ Qdd = Q.diff(t,2)
 
 # ### Dgl.-System
 
-# In[10]:
+# In[314]:
 
 
 display(Math(sym.latex(Matrix(M))+mlatex(Qdd)+'+'+sym.latex(Matrix(C))+mlatex(Qd)+sym.latex(Matrix(K))+mlatex(Q)+'='+mlatex(F)))
@@ -155,7 +162,7 @@ display(Math(sym.latex(Matrix(M))+mlatex(Qdd)+'+'+sym.latex(Matrix(C))+mlatex(Qd
 
 #  ### Anfangsbedingungen $q_{o}$ und $v_{0}$
 
-# In[11]:
+# In[316]:
 
 
 # Anfangsbedingungen
@@ -168,7 +175,7 @@ v_0 = np.array([0.5e-3, 1e-3, -0.5e-3])  # Anfangsgeschwindigkeit in mm/s
 # 
 # $A = M^{-1} \cdot C$
 
-# In[12]:
+# In[318]:
 
 
 A = np.matmul(np.linalg.inv(M),C)
@@ -179,7 +186,7 @@ A = np.matmul(np.linalg.inv(M),C)
 # 
 # $det \left( A - \lambda E \right) = 0$
 
-# In[13]:
+# In[320]:
 
 
 eigenwerte, eigenvektoren = np.linalg.eig(A)
@@ -194,25 +201,66 @@ sortierte_eigenvektoren = eigenvektoren[:, sort_indices]
 # 
 # $\omega _0 = \sqrt{ \lambda }$
 
-# In[14]:
+# In[322]:
 
 
 wn = np.sqrt(sortierte_eigenwerte)
+
+
+# <div class="alert alert-block alert-success">
+# <b>Eigenwerte:</b> sortiert nach Größe
+# </div>
+
+# In[324]:
+
+
 wn
 
 
 # zugehörige Eigenvektoren $\psi$ und die Eigenvektormatrix $\Psi$
 
-# In[15]:
+# <div class="alert alert-block alert-success">
+# <b>Eigenvektormatrix:</b>
+# </div>
+
+# In[327]:
 
 
 sortierte_eigenvektoren
 
 
-# In[16]:
+# In[328]:
 
 
 ordnung = len(wn)
+
+
+# ### Rayleigh-Quotient
+# Berechnung des betragsmäßig  größten Eigenwertes
+# 
+# $\lambda_i = \frac{\mathbf{x}_i^\top \mathbf{A} \mathbf{x}_i}{\mathbf{x}_i^\top \mathbf{x}_i}, \quad \text{für } i = 1, 2, \dots, n
+# \$
+
+# In[330]:
+
+
+lambdas = []
+for i in range(sortierte_eigenvektoren.shape[1]):  # Über alle Spalten der Eigenvektoren iterieren
+    x = sortierte_eigenvektoren[:, i]
+    numerator = np.dot(x.T, np.dot(A, x))  # x^T * A * x
+    denominator = np.dot(x.T, x)  # x^T * x
+    lambdas.append(numerator / denominator)
+lambda_R1, lambda_R2, lambda_R3 = lambdas
+
+
+# <div class="alert alert-block alert-success">
+# <b>Eigenwerte:</b> über Rayleigh-Quotient
+# </div>
+
+# In[332]:
+
+
+lambdas
 
 
 # ### Normierung der Eigenvektoren
@@ -220,7 +268,11 @@ ordnung = len(wn)
 # 
 # normierte Eigenvektoren $\psi_{N}$
 
-# In[17]:
+# <div class="alert alert-block alert-success">
+# <b>Eigenvektormatrix:</b> Min|Max normiert auf 1 / -1 
+# </div>
+
+# In[335]:
 
 
 psi = normiere_matrix(sortierte_eigenvektoren)
@@ -242,11 +294,20 @@ psi
 # 
 # $M_G = \Psi ^T M \Psi$
 
-# In[18]:
+# In[339]:
 
 
 psiT = np.transpose(psi)
 MG = np.dot(np.dot(psiT,M),psi)
+
+
+# <div class="alert alert-block alert-success">
+# <b>generalisierte Masse:</b>
+# </div>
+
+# In[341]:
+
+
 np.around(MG,2)
 
 
@@ -260,7 +321,7 @@ np.around(MG,2)
 # 
 # $\phi ^{(i)} = \frac{\psi ^{(i)}} { \sqrt{{M_G}_{i,i} } }$
 
-# In[19]:
+# In[343]:
 
 
 phi = psi/(np.sqrt(np.diag(MG)))
@@ -268,7 +329,11 @@ phi = psi/(np.sqrt(np.diag(MG)))
 
 # Modalmatrix $\Phi$
 
-# In[20]:
+# <div class="alert alert-block alert-success">
+# <b>Modalmatrix:</b>
+# </div>
+
+# In[346]:
 
 
 phi
@@ -278,7 +343,7 @@ phi
 # 
 # $\Phi^{T} \cdot M \cdot \Phi = E$
 
-# In[21]:
+# In[348]:
 
 
 E = np.dot(np.dot(np.transpose(phi),M),phi)
@@ -289,20 +354,38 @@ np.around(E,2)
 # $K_m =\Phi^T \cdot K \cdot \Phi$
 # 
 
-# In[22]:
+# In[350]:
 
 
 Km = np.dot(np.dot(np.transpose(phi),K),phi)
+
+
+# <div class="alert alert-block alert-success">
+# <b>modale Dämpfung:</b>
+# </div>
+
+# In[352]:
+
+
 np.around(Km,4)
 
 
 # ### Die Spektralmatrix $ \Omega $
 # $ \Omega =\Phi^T \cdot C \cdot \Phi $
 
-# In[23]:
+# In[354]:
 
 
 CSp = np.dot(np.dot(np.transpose(phi),C),phi)
+
+
+# <div class="alert alert-block alert-success">
+# <b>Spektralmatrix:</b>
+# </div>
+
+# In[356]:
+
+
 np.around(CSp,4)
 
 
@@ -317,10 +400,19 @@ np.around(CSp,4)
 # ### Die Lehrschen Dämpfungsmaße D
 # $D_i = \frac{ {K_m}_{i,i} }{2 \cdot {\omega_0}_i  }$
 
-# In[24]:
+# In[359]:
 
 
 D = np.diag(Km) / (2*wn)
+
+
+# <div class="alert alert-block alert-success">
+# <b>Dämpfungsmaße:</b>
+# </div>
+
+# In[361]:
+
+
 D
 
 
@@ -328,26 +420,44 @@ D
 # $\omega = \omega_0 \cdot \sqrt{ 1-D^2 }$
 # 
 
-# In[25]:
+# In[363]:
 
 
 wd = wn * np.sqrt(1-D*D)
+
+
+# <div class="alert alert-block alert-success">
+# <b>Eigenkreisfrequenzen:</b> gedämpft
+# </div>
+
+# In[365]:
+
+
 wd
 
 
 # ### Abklingkonstanten $\delta$ 
 # $\delta = D \cdot \omega_0$
 
-# In[26]:
+# In[367]:
 
 
 delta = D * wd
+
+
+# <div class="alert alert-block alert-success">
+# <b>Abklingkonstanten:</b>
+# </div>
+
+# In[369]:
+
+
 delta
 
 
 # ### Darstellung der Eigenvektoren als Knotenbilder(mode shapes)
 
-# In[27]:
+# In[371]:
 
 
 x = np.arange(ordnung+1)
@@ -393,7 +503,7 @@ plt.show()
 
 # ### Lösung der entkoppelten Gleichungen im Zeitbereich 
 
-# In[28]:
+# In[373]:
 
 
 # Lösung im Zeitbereich über modale Entkopplung
@@ -449,7 +559,7 @@ plt.show()
 
 # ### Frequenzgangmatrix berechnen und darstellen
 
-# In[29]:
+# In[375]:
 
 
 # Frequenzgangmatrix
@@ -457,7 +567,7 @@ plt.show()
 # Residuum berechnen
 Residuum = np.zeros(ordnung, dtype=complex) # erzeuge komplexen Null-Vektor
 for i in range(ordnung):
-    Residuum[i] = -1j / (2 * wd[i] * M[i, i])
+    Residuum[i] = -1j / (2 * wd[i] )
 
 # komplexe Eigenwerte berechnen
 eigenwert_k = -delta + 1j * wd
@@ -479,7 +589,7 @@ fig, axs = plt.subplots(2, 1,figsize=(10,7))
 fig.suptitle('Amplitudenfrequenzgang')
 axs[0].set_yscale("log")
 axs[0].set_xlabel('Erregerkreisfrequenz in rad/s')
-axs[0].set_ylabel('Amplitude')
+axs[0].set_ylabel('Amplitude in Meter')
 axs[0].plot(omega_e, amplitude, '-', color='cornflowerblue',
             label='FRF '+ str(out_frf) + str(in_frf))
 
@@ -487,6 +597,7 @@ axs[0].plot(omega_e, amplitude, '-', color='cornflowerblue',
 positive_amplitude = [amp for amp in amplitude if amp > 0]
 y_min, y_max = min(positive_amplitude), max(positive_amplitude)
 axs[0].set_ylim([y_min * 0.9, y_max * 1.1])
+
 axs[0].legend(loc='upper right')
 
 #axs[1].set_ylim(-180)
@@ -501,4 +612,10 @@ for ax in axs:
     ax.grid(True, color='gray', linestyle='--', linewidth=0.5)
 
 plt.show()
+
+
+# In[ ]:
+
+
+
 
