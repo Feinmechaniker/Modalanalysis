@@ -13,11 +13,13 @@ Program history
 09.10.2023    V. 1.1    Anfangsbedingungen
 10.10.2023    V  1.2    Lösung des entkoppelten Systems im Zeitbereich
 16.11.2023    V  1.3    Frequenzgang
-22.11.2023    V  1.4    Dokumentation
+23.11.2023    V  1.4    Dokumentation
+31.12.2024    V  1.5    Scale y-Achse 
+08.01.2025    V  1.6    Rayleigh-Quotient eingefügt
 
 @author: Prof. Jörg Grabow (grabow@amesys.de)
 """
-__version__ = '1.4'
+__version__ = '1.6'
 __author__ = 'Joe Grabow'
 
 import numpy as np
@@ -82,6 +84,10 @@ Eingabe der Massenmatrix, Steifigkeitsmatrix und Dämpfungsmatrix
 ---
 Bei proportionaler Dämpfung (Rayleigh-Dämpfung): $K = \alpha M + \beta C$.
 
+<div class="alert alert-block alert-info">
+<b>Systemmatritzen:</b> 
+</div>
+
 
 ```python
 M = np.array([[m1, 0, 0],
@@ -97,7 +103,6 @@ K = np.array([[k1+k2, -k2,   0],
 K = alpha*M + beta*C
 ```
 
-## Systemmatrizen
 ### Massenmatrix
 
 
@@ -208,6 +213,14 @@ $\omega _0 = \sqrt{ \lambda }$
 
 ```python
 wn = np.sqrt(sortierte_eigenwerte)
+```
+
+<div class="alert alert-block alert-success">
+<b>Eigenwerte:</b> sortiert nach Größe
+</div>
+
+
+```python
 wn
 ```
 
@@ -219,6 +232,10 @@ wn
 
 
 zugehörige Eigenvektoren $\psi$ und die Eigenvektormatrix $\Psi$
+
+<div class="alert alert-block alert-success">
+<b>Eigenvektormatrix:</b>
+</div>
 
 
 ```python
@@ -239,10 +256,47 @@ sortierte_eigenvektoren
 ordnung = len(wn)
 ```
 
+### Rayleigh-Quotient
+Berechnung des betragsmäßig  größten Eigenwertes
+
+$\lambda_i = \frac{\mathbf{x}_i^\top \mathbf{A} \mathbf{x}_i}{\mathbf{x}_i^\top \mathbf{x}_i}, \quad \text{für } i = 1, 2, \dots, n
+\$
+
+
+```python
+lambdas = []
+for i in range(sortierte_eigenvektoren.shape[1]):  # Über alle Spalten der Eigenvektoren iterieren
+    x = sortierte_eigenvektoren[:, i]
+    numerator = np.dot(x.T, np.dot(A, x))  # x^T * A * x
+    denominator = np.dot(x.T, x)  # x^T * x
+    lambdas.append(numerator / denominator)
+lambda_R1, lambda_R2, lambda_R3 = lambdas
+```
+
+<div class="alert alert-block alert-success">
+<b>Eigenwerte:</b> über Rayleigh-Quotient
+</div>
+
+
+```python
+lambdas
+```
+
+
+
+
+    [1415.9652458835767, 763.1273304182796, 154.24075703147724]
+
+
+
 ### Normierung der Eigenvektoren
 In jedem Eigenvektor wird der betragsmäßig größte Wert immer auf eins normiert.
 
 normierte Eigenvektoren $\psi_{N}$
+
+<div class="alert alert-block alert-success">
+<b>Eigenvektormatrix:</b> Min|Max normiert auf 1 / -1 
+</div>
 
 
 ```python
@@ -278,6 +332,14 @@ $M_G = \Psi ^T M \Psi$
 ```python
 psiT = np.transpose(psi)
 MG = np.dot(np.dot(psiT,M),psi)
+```
+
+<div class="alert alert-block alert-success">
+<b>generalisierte Masse:</b>
+</div>
+
+
+```python
 np.around(MG,2)
 ```
 
@@ -306,6 +368,10 @@ phi = psi/(np.sqrt(np.diag(MG)))
 ```
 
 Modalmatrix $\Phi$
+
+<div class="alert alert-block alert-success">
+<b>Modalmatrix:</b>
+</div>
 
 
 ```python
@@ -347,6 +413,14 @@ $K_m =\Phi^T \cdot K \cdot \Phi$
 
 ```python
 Km = np.dot(np.dot(np.transpose(phi),K),phi)
+```
+
+<div class="alert alert-block alert-success">
+<b>modale Dämpfung:</b>
+</div>
+
+
+```python
 np.around(Km,4)
 ```
 
@@ -365,6 +439,14 @@ $ \Omega =\Phi^T \cdot C \cdot \Phi $
 
 ```python
 CSp = np.dot(np.dot(np.transpose(phi),C),phi)
+```
+
+<div class="alert alert-block alert-success">
+<b>Spektralmatrix:</b>
+</div>
+
+
+```python
 np.around(CSp,4)
 ```
 
@@ -391,6 +473,14 @@ $D_i = \frac{ {K_m}_{i,i} }{2 \cdot {\omega_0}_i  }$
 
 ```python
 D = np.diag(Km) / (2*wn)
+```
+
+<div class="alert alert-block alert-success">
+<b>Dämpfungsmaße:</b>
+</div>
+
+
+```python
 D
 ```
 
@@ -408,6 +498,14 @@ $\omega = \omega_0 \cdot \sqrt{ 1-D^2 }$
 
 ```python
 wd = wn * np.sqrt(1-D*D)
+```
+
+<div class="alert alert-block alert-success">
+<b>Eigenkreisfrequenzen:</b> gedämpft
+</div>
+
+
+```python
 wd
 ```
 
@@ -424,6 +522,14 @@ $\delta = D \cdot \omega_0$
 
 ```python
 delta = D * wd
+```
+
+<div class="alert alert-block alert-success">
+<b>Abklingkonstanten:</b>
+</div>
+
+
+```python
 delta
 ```
 
@@ -481,7 +587,7 @@ plt.show()
 
 
     
-![png](output_54_0.png)
+![png](output_76_0.png)
     
 
 
@@ -542,7 +648,7 @@ plt.show()
 
 
     
-![png](output_56_0.png)
+![png](output_78_0.png)
     
 
 
@@ -555,7 +661,7 @@ plt.show()
 # Residuum berechnen
 Residuum = np.zeros(ordnung, dtype=complex) # erzeuge komplexen Null-Vektor
 for i in range(ordnung):
-    Residuum[i] = -1j / (2 * wd[i] * M[i, i])
+    Residuum[i] = -1j / (2 * wd[i] )
 
 # komplexe Eigenwerte berechnen
 eigenwert_k = -delta + 1j * wd
@@ -565,22 +671,27 @@ omega_e = np.arange(0, 60, 0.1)
 
 # Wahl des Frequenzgangmatrixelementes zur Berechnung und Darstellung
 out_frf = 0
-in_frf = 1
+in_frf = 0
 
 frequenzgang = frf(ordnung, out_frf, in_frf, omega_e)
-amplitude = 20*np.log10(np.abs(frequenzgang))  # Amplitude in dB
+amplitude = np.abs(frequenzgang)  # Amplitude
 phase_radian = np.angle(frequenzgang)
 phase_degree = np.degrees(phase_radian)
 
 # Plot Amplitudenfrequenzgang
 fig, axs = plt.subplots(2, 1,figsize=(10,7))
 fig.suptitle('Amplitudenfrequenzgang')
-#axs[0].set_yscale("log")
+axs[0].set_yscale("log")
 axs[0].set_xlabel('Erregerkreisfrequenz in rad/s')
-axs[0].set_ylabel('Amplitude in dB')
+axs[0].set_ylabel('Amplitude in Meter')
 axs[0].plot(omega_e, amplitude, '-', color='cornflowerblue',
             label='FRF '+ str(out_frf) + str(in_frf))
-axs[0].set_ylim(-250)
+
+# Für logarithmischen Maßstab nur positive Werte berücksichtigen
+positive_amplitude = [amp for amp in amplitude if amp > 0]
+y_min, y_max = min(positive_amplitude), max(positive_amplitude)
+axs[0].set_ylim([y_min * 0.9, y_max * 1.1])
+
 axs[0].legend(loc='upper right')
 
 #axs[1].set_ylim(-180)
@@ -599,6 +710,11 @@ plt.show()
 
 
     
-![png](output_58_0.png)
+![png](output_80_0.png)
     
 
+
+
+```python
+
+```
